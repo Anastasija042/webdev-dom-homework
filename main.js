@@ -1,28 +1,29 @@
-import { fetchComments, postComment } from "./api.js";
+import { getComments } from "./api.js";
+import { renderComments } from "./renderComments.js";
 
-const commentNameInput = document.querySelector(".add-form-name");
-const commentTextInput = document.querySelector(".add-form-text");
-const addButton = document.querySelector(".add-form-button");
+let comments = [];
 
+const RUDate = Intl.DateTimeFormat();
 
-fetchComments();
+function fetchAndRenderTasks() {
+  getComments().then((responseData) => {
+    const appComments = responseData.comments.map((comment) => {
+      return {
+        name: comment.author.name,
+        date: RUDate.format(new Date(comment.date)),
+        likes: comment.likes,
+        isLiked: false,
+        text: comment.text,
+      };
+    });
 
-addButton.addEventListener("click", () => {
-  commentNameInput.classList.remove("error");
+    comments = appComments;
 
-  if (commentNameInput.value === "") {
-    commentNameInput.classList.add("error");
-    return;
-  }
-  if (commentTextInput.value === "") {
-    commentTextInput.classList.add("error");
-    return;
-  }
-  postComment();
+    renderComments({ comments, fetchAndRenderTasks, name: window.userName });
 
-  addButton.disabled = true;
-  addButton.textContent = "Комментарий добавляется";
+    const containerPreloader = document.getElementById("container-preloader");
+    containerPreloader.textContent = "";
+  });
+}
 
-  commentNameInput.value = "";
-  commentTextInput.value = "";
-});
+fetchAndRenderTasks();
